@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title id='Description'>Waterfall</title>
+    <link rel="stylesheet" href="/jqwidgets/styles/jqx.base.css" type="text/css" />
+    <script type="text/javascript" src="/scripts/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxcore.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxdata.js"></script> 
+    <script type="text/javascript" src="/jqwidgets/jqxbuttons.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxscrollbar.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxmenu.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxgrid.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxgrid.pager.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxgrid.selection.js"></script> 
+    <script type="text/javascript" src="/jqwidgets/jqxnumberinput.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxwindow.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxlistbox.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxdropdownlist.js"></script>
+    <script type="text/javascript" src="/jqwidgets/jqxinput.js"></script>
+    <script type="text/javascript" src="/scripts/demos.js"></script>
+	
+	<style>
+#chartdiv {
+	width		: 100%;
+	height		: 500px;
+	font-size	: 0px;
+}	
+</style>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/pie.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/light.js"></script>
+
+<link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
+<link href="/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  <link href="/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+ 
+<link href="../css/style.css" rel="stylesheet">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["timeline"]});
+      google.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+	  <%
+		if(doc!=null && doc.length!=0){
+	  %>
+        var container = document.getElementById('timeline');
+        var chart = new google.visualization.Timeline(container);
+        var dataTable = new google.visualization.DataTable();
+
+        dataTable.addColumn({ type: 'string', id: 'President' });
+        dataTable.addColumn({ type: 'date', id: 'Start' });
+        dataTable.addColumn({ type: 'date', id: 'End' });
+        dataTable.addRows([
+		<%for(var index=0; index<doc.length; index++){%>
+		<%var start = doc[index].StartDate;
+		var end = doc[index].EndDate;
+		var dates=[];
+		var s_year = parseInt(start.substring(0, 4));
+		var s_month = parseInt(start.substring(5, 7));
+		var s_day = parseInt(start.substring(8, 10));
+		var e_year = parseInt(end.substring(0, 4));
+		var e_month = parseInt(end.substring(5, 7));
+		var e_day = parseInt(end.substring(8, 10));
+		dates.push(new Date(s_year+"/"+s_month+"/"+s_day));
+		dates.push(new Date(e_year+"/"+e_month+"/"+e_day));
+			console.log(dates);
+		
+          if(index==doc.length-1){%>
+		  [ '<%=doc[index].TaskName%>', new Date(<%=s_year%>, <%=s_month%>, <%=s_day%>), new Date(<%=e_year%>, <%=e_month%>, <%=e_day%>) ]
+		  <%}else{%>
+		  [ '<%=doc[index].TaskName%>', new Date(<%=s_year%>, <%=s_month%>, <%=s_day%>), new Date(<%=e_year%>, <%=e_month%>, <%=e_day%>) ],
+		  <%}%>
+		  <%}%>
+		  ]);
+        chart.draw(dataTable);
+		var x = (dataTable.getNumberOfRows()*41 + 30).toString();
+		document.getElementById('timeline').style.height = x+'px';
+		<% } 
+				
+		var maxDate=new Date(Math.max.apply(null,dates));
+		var minDate=new Date(Math.min.apply(null,dates));
+		var mmin = minDate.getFullYear() + "/" + ("0" + (minDate.getMonth() + 1)).slice(-2) + "/" + minDate.getDate();
+		var mmax = maxDate.getFullYear() + "/" + ("0" + (maxDate.getMonth() + 1)).slice(-2) + "/" + maxDate.getDate();
+		
+		var date1 = new Date(mmin);
+		var date2 = new Date(mmax);
+		var timeDiff = Math.abs(date2.getTime() - date1.getTime());
+		var dd1 = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+		
+		var today = new Date();
+		var dd = today.getDate();
+		var mm = today.getMonth()+1; //January is 0!
+
+		var yyyy = today.getFullYear();
+		if(dd<10){
+			dd='0'+dd
+		} 
+		if(mm<10){
+			mm='0'+mm
+		} 
+		var today = yyyy+'/'+mm+'/'+dd;
+
+		var date11 = new Date(mmin);
+		var date22 = new Date(today);
+		var timeDiff1 = Math.abs(date22.getTime() - date11.getTime());
+		var dd = Math.ceil(timeDiff1 / (1000 * 3600 * 24)); 
+		
+		var percentComplete = (dd *100)/dd1;
+		%>
+      }
+	  
+var chart = AmCharts.makeChart( "chartdiv", {
+  "type": "pie",
+  "theme": "light",
+  "dataProvider": [ {
+    "country": "Remaining",
+    "litres": <%=100-percentComplete%>
+  }, {
+    "country": "Completed",
+    "litres": <%=percentComplete%>
+  },  ],
+  "valueField": "litres",
+  "titleField": "country",
+  "export": {
+    "enabled": true,
+    "libs": {
+      "path": "http://www.amcharts.com/lib/3/plugins/export/libs/"
+    }
+  }
+} );
+
+    </script>
+  
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // prepare the data
+			var temp=[];
+			var dataSprints,doc;
+		<% 
+			if(sprintsData==null || sprintsData.length==0){
+			%> 
+			dataSprints =[];
+			<%
+			}
+			else{
+		%>
+					dataSprints ='<%- (sprintsData) %>';
+		<% } %>
+			<%
+				for(i=0;i<sprintFields.length;i++){
+				%>
+					
+					var obj = {name: '<%=sprintFields[i]%>', type: '<%=sprintFields[i]%>'};
+					temp.push(obj);
+				<% }%>
+
+			var dataStories='{"StoryTitle":"one","StartDate":"two","EndDate":"three","AssignedTo":"three","StoryDescription":"three"}';
+          
+			 var url = "/getSprintData?projectid=1";
+			 var source =
+      {
+          datatype: "json",
+		  localdata:dataSprints,
+          datafields: temp,
+          id: 'id',
+          //url: url
+      };
+
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            var editrow = -1;
+            // initialize jqxGrid
+            $("#jqxgrid").jqxGrid(
+            {
+                width: <%=sprintFields.length+1%>*150,
+                source: dataAdapter,
+                pageable: true,
+                autoheight: true,
+                columns: [
+				<%
+				for(i=0;i<sprintFields.length;i++){
+				%>
+					{ text: '<%=sprintFields[i]%>',datafield: '<%=sprintFields[i]%>', width: 150 },
+				<% }%>
+       
+                  { text: 'Edit', datafield: 'Edit', columntype: 'button', width: 150, cellsrenderer: function () {
+                     return "Edit";
+                  }, buttonclick: function (row) {
+                     // open the popup window when the user clicks a button.
+                     editrow = row;
+                     var offset = $("#jqxgrid").offset();
+                     $("#popupWindow").jqxWindow({ position: { x: parseInt(offset.left) + 60, y: parseInt(offset.top) + 60 } });
+                     // get the clicked row's data and initialize the input fields.
+                     var dataRecord = $("#jqxgrid").jqxGrid('getrowdata', editrow);
+					 	<%
+				for(i=0;i<sprintFields.length;i++){
+				%>
+					
+					 $("#<%=sprintFields[i]%>").val(dataRecord.<%=sprintFields[i]%>);
+				<% }%>
+                    
+                     // show the popup window.
+					  $("#SprintId").prop("readonly", true);
+					  $('#Save').css('display', 'inline');
+					  $('#AddSprintData').css('display', 'none');
+                     $("#popupWindow").jqxWindow('open');
+                 }
+                 }
+                ]
+            });
+			
+            var editrow = -1;
+	
+            // initialize the popup window and buttons. SPRINT
+            $("#popupWindow").jqxWindow({
+                width: 350, resizable: false,  isModal: true, autoOpen: false, cancelButton: $("#Cancel"), modalOpacity: 0.01           
+            });
+            $("#popupWindow").on('open', function () {
+              //  $("#firstName").jqxInput('selectAll');
+            });
+         
+            $("#Cancel").jqxButton({ theme: theme });
+            $("#Save").jqxButton({ theme: theme });
+			$("#AddSprintData").jqxButton({theme:theme});
+			
+            // update the edited row when the user clicks the 'Save' button.
+			         $("#Save").click(function () {
+                var url;
+                console.log('edit row'+editrow);
+                if (editrow >= 0)
+                   {
+                     console.log('in if');
+                   	
+					var row={
+					
+						 	<%
+								for(i=0;i<sprintFields.length;i++){
+							
+									var temp=sprintFields.length-1;
+									if(i==temp){
+									%>
+												'<%=sprintFields[i]%>':$("#<%=sprintFields[i]%>").val()
+									<%}else	 	{%>
+											'<%=sprintFields[i]%>':$("#<%=sprintFields[i]%>").val(),
+									<%} 
+							}%>
+				}
+                     console.log(row);
+                        $.ajax('/updateData/'+<%=pid%>+'/'+"waterfall", {//'/waterfall/updateTask', {
+                            type: 'POST',
+                            data: JSON.stringify(row),
+                            contentType: 'text/json',
+                            success: function() { console.log('sprint updated success'); 
+							location.reload();
+							},
+                            error  : function() {   alert("Request failed: " ); }
+                        });
+                         var rowID = $('#jqxgrid').jqxGrid('getrowid', editrow);
+
+                     
+                       $('#jqxgrid').jqxGrid('updaterow', rowID, row);
+                       $("#popupWindow").jqxWindow('hide');
+                }
+                
+            });
+			// Add new sprint data
+            $("#AddSprintData").click(function () {
+			
+					var row={
+					
+						 	<%
+								for(i=0;i<sprintFields.length;i++){
+							
+									var temp=sprintFields.length-1;
+									if(i==temp){
+									%>
+												'<%=sprintFields[i]%>':$("#<%=sprintFields[i]%>").val()
+									<%}else	 	{%>
+											'<%=sprintFields[i]%>':$("#<%=sprintFields[i]%>").val(),
+									<%} 
+							}%>
+				}
+				console.log('row data');
+				console.log(row);
+				console.log(JSON.stringify(row));
+							
+									 $.ajax('/newData?pid='+<%=pid%>, {
+                            type: 'POST',
+                            data: JSON.stringify(row),
+                            contentType: 'text/json',
+                            success: function() { console.log('sprint addedd success');
+							location.reload();
+							},
+                            error  : function() {   alert("Request failed: " ); }
+                        });
+                   // var rowID = $('#jqxgrid').jqxGrid('getrowid', editrow);
+					var commit = $("#jqxgrid").jqxGrid('addrow', null, row)
+                   // $('#jqxgrid').jqxGrid('updaterow', rowID, row);
+                    $("#popupWindow").jqxWindow('hide');
+                
+            });
+			 $("#addSprint").click(function () {
+					  var offset = $("#jqxgrid").offset();
+					 $("#popupWindow").jqxWindow({ position: { x: parseInt(offset.left) + 60, y: parseInt(offset.top) + 60 } });
+					
+					 $('#Save').css('display', 'none');
+					  $('#AddSprintData').css('display', 'inline');
+					$("#popupWindow").jqxWindow('open');
+            });
+	
+                   // var rowID = $('#jqxgrid').jqxGrid('getrowid', editrow);
+					var commit = $("#jqxgridStories").jqxGrid('addrow', null, row)
+                   // $('#jqxgrid').jqxGrid('updaterow', rowID, row);
+                    $("#popupWindowStories").jqxWindow('hide');
+                
+            });
+      
+				
+
+	
+    </script>
+</head>
+<body class='default'>
+	
+<div class="navbar navbar-fixed-top">
+   <div class="navbar-inner">
+      <div class="container">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="/">
+          Project Management    
+        </a>    
+        
+        <div class="nav-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/home">Home </a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Profile <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="/users/edit">Edit Profile</a></li>
+              </ul>
+            </li>
+          </ul>
+
+         <ul class="nav pull-right">
+            <li class="">           
+              <a href="/logout" class="">
+                Sign out
+              </a>
+            </li>
+         </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div class="container"> 
+<br>
+<br>
+
+<center>
+<table >
+  <tr><td><div id="timeline" style="width: 700px; height:10px;"></div></td>
+	<td><div id="chartdiv" style="width: 520px; height: 290px;"></div></td>
+  </tr>
+</table>
+</center>
+
+
+<div class="main">
+      <div class="main-inner">
+        <div class="container">
+          <div class="row">
+          
+           <div class="span12">
+	 		<div id="loose" class="widget widget-table action-table">
+            <div class="widget-header"> <i class="icon-th-list"></i>
+              <h3>Project List</h3>
+            </div>
+            <!-- /widget-header -->
+            <div class="widget-content">
+<center>
+
+  <table>
+	
+	<!--<%
+	console.log(sprintFields.length);
+	console.log(sprintFields[0]);
+	for(i=0;i<sprintFields.length;i++){
+	%>
+	<tr><td><%=sprintFields[i]%></td><td><input type="text" name="sprintField<%=i%>" ></input></td></tr>
+	<%}%>-->
+	<br>
+	</table>
+	<div>
+    <button type="button" id="addSprint" class="btn btn-info">Add Task</button>
+	</div>
+	<br>
+    <div id='jqxWidget'>
+        <div id="jqxgrid"></div>
+        <div style="margin-top: 30px;">
+            <div id="cellbegineditevent"></div>
+            <div style="margin-top: 10px;" id="cellendeditevent"></div>
+       </div>
+	   <div id="jqxgridStories"></div>
+       <div id="popupWindow">
+            <div>Edit</div>
+            <div style="overflow: hidden;">
+                <table>
+						<%
+					for(i=0;i<sprintFields.length;i++){
+					%>
+						
+						  <tr>
+                        <td align="right"><%=sprintFields[i]%>:</td>
+                        <td align="left"><input id='<%=sprintFields[i]%>' /></td>
+                    </tr>
+					<% }%>
+       
+      
+                    <tr>
+                        <td align="right"></td>
+                        <td style="padding-top: 10px;" align="right">
+						<input style="margin-right: 5px;" type="button" id="Save" value="Save" />
+						<input style="margin-right: 5px;" type="button" id="AddSprintData" value="Add"  />
+						<input id="Cancel" type="button" value="Cancel" />
+						</td>
+                    </tr>
+                </table>
+				</center>
+            </div>
+       </div>
+    </div>
+  </div>
+  
+  </div>
+            <!-- /widget-content --> 
+    	 </div>
+ 		</div>
+  
+          </div>
+      </div>
+    </div>
+  </div>   
+</div>
+
+<div class="navbar navbar-fixed-bottom" style="height:20px;">
+   <div class="navbar-inner" >
+      <div class="container">
+        <a class="brand" href="">
+         <h5>© CMPE 281 Team 8 (Spring - 2015)</h5>
+        </a>    
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
